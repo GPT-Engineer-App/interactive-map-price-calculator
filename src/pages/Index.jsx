@@ -7,7 +7,8 @@ const BASE_FARE = 580;
 
 const Index = () => {
   const [map, setMap] = useState(null);
-  const [origin, setOrigin] = useState(null);
+  const [companyPosition, setCompanyPosition] = useState({ lat: 0, lng: 0 });
+  const [pickupLocation, setPickupLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [distance, setDistance] = useState(0);
   const [price, setPrice] = useState(0);
@@ -25,25 +26,29 @@ const Index = () => {
   }, []);
 
   const initMap = () => {
-    // Initialize the map
     const mapOptions = {
-      center: { lat: 0, lng: 0 },
-      zoom: 2,
+      center: companyPosition,
+      zoom: 12,
     };
     const newMap = new window.google.maps.Map(document.getElementById("map"), mapOptions);
     setMap(newMap);
+
+    new window.google.maps.Marker({
+      position: companyPosition,
+      map: newMap,
+      title: "Company",
+    });
   };
 
   const handleMapClick = (event) => {
     const clickedLocation = event.latLng;
 
-    if (!origin) {
-      // Set the origin marker
-      setOrigin(clickedLocation);
+    if (!pickupLocation) {
+      setPickupLocation(clickedLocation);
       new window.google.maps.Marker({
         position: clickedLocation,
         map: map,
-        title: "Origin",
+        title: "Pickup Location",
       });
     } else if (!destination) {
       // Set the destination marker
@@ -57,18 +62,20 @@ const Index = () => {
   };
 
   const calculateDistance = () => {
-    if (origin && destination) {
+    if (pickupLocation && destination) {
       const distanceService = new window.google.maps.DistanceMatrixService();
       distanceService.getDistanceMatrix(
         {
-          origins: [origin],
-          destinations: [destination],
+          origins: [companyPosition, pickupLocation],
+          destinations: [pickupLocation, destination],
           travelMode: "DRIVING",
         },
         (response, status) => {
           if (status === "OK") {
-            const distanceInMeters = response.rows[0].elements[0].distance.value;
-            const distanceInKm = distanceInMeters / 1000;
+            const companyToPickupDistance = response.rows[0].elements[0].distance.value;
+            const pickupToDestinationDistance = response.rows[1].elements[1].distance.value;
+            const totalDistanceInMeters = companyToPickupDistance + pickupToDestinationDistance;
+            const distanceInKm = totalDistanceInMeters / 1000;
             setDistance(distanceInKm);
             calculatePrice(distanceInKm);
           }
@@ -87,9 +94,9 @@ const Index = () => {
       <Box id="map" h="400px" onClick={handleMapClick} />
       <VStack mt={4} spacing={4}>
         <Text>
-          {origin && (
+          {pickupLocation && (
             <>
-              Origin: {origin.lat()}, {origin.lng()}
+              Pickup Location: {pickupLocation.lat()}, {pickupLocation.lng()}
             </>
           )}
         </Text>
@@ -100,7 +107,7 @@ const Index = () => {
             </>
           )}
         </Text>
-        <Button leftIcon={<FaMapMarkerAlt />} onClick={calculateDistance} disabled={!origin || !destination}>
+        <Button leftIcon={<FaMapMarkerAlt />} onClick={calculateDistance} disabled={!pickupLocation || !destination}>
           Calculate Distance
         </Button>
         <Text>Distance: {distance} km</Text>
