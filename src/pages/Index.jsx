@@ -40,34 +40,48 @@ const Index = () => {
     });
   };
 
+  const [pickupMarker, setPickupMarker] = useState(null);
+  const [destinationMarker, setDestinationMarker] = useState(null);
+
   const handleMapClick = (event) => {
     const clickedLocation = event.latLng;
 
     if (!pickupLocation) {
       setPickupLocation(clickedLocation);
-      new window.google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: clickedLocation,
         map: map,
         title: "Pickup Location",
+        draggable: true,
       });
+      marker.addListener("dragend", () => {
+        setPickupLocation(marker.getPosition());
+        calculateDistance();
+      });
+      setPickupMarker(marker);
     } else if (!destination) {
-      // Set the destination marker
       setDestination(clickedLocation);
-      new window.google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: clickedLocation,
         map: map,
         title: "Destination",
+        draggable: true,
       });
+      marker.addListener("dragend", () => {
+        setDestination(marker.getPosition());
+        calculateDistance();
+      });
+      setDestinationMarker(marker);
     }
   };
 
   const calculateDistance = () => {
-    if (pickupLocation && destination) {
+    if (pickupMarker && destinationMarker) {
       const distanceService = new window.google.maps.DistanceMatrixService();
       distanceService.getDistanceMatrix(
         {
-          origins: [companyPosition, pickupLocation],
-          destinations: [pickupLocation, destination],
+          origins: [companyPosition, pickupMarker.getPosition()],
+          destinations: [pickupMarker.getPosition(), destinationMarker.getPosition()],
           travelMode: "DRIVING",
         },
         (response, status) => {
