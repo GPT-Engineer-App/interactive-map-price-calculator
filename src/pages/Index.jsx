@@ -7,7 +7,7 @@ const BASE_FARE = 580;
 
 const Index = () => {
   const [map, setMap] = useState(null);
-  const [companyPosition, setCompanyPosition] = useState({ lat: 0, lng: 0 });
+  const [companyPosition, setCompanyPosition] = useState({ lat: 26.825465, lng: -100.1859077 });
   const [pickupLocation, setPickupLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [distance, setDistance] = useState(0);
@@ -16,7 +16,7 @@ const Index = () => {
   useEffect(() => {
     // Load the Google Maps API script
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBYG93ssZJmfQyo3xTmHAg9f3JkfrlLYyE`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBYG93ssZJmfQyo3xTmHAg9f3JkfrlLYyE&callback=initMap`;
     script.onload = initMap;
     document.head.appendChild(script);
 
