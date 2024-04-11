@@ -12,6 +12,7 @@ const Index = () => {
   const [destination, setDestination] = useState(null);
   const [distance, setDistance] = useState(0);
   const [price, setPrice] = useState(0);
+  const [routePolyline, setRoutePolyline] = useState(null);
 
   useEffect(() => {
     // Load the Google Maps API script
@@ -92,6 +93,7 @@ const Index = () => {
             const distanceInKm = totalDistanceInMeters / 1000;
             setDistance(distanceInKm);
             calculatePrice(distanceInKm);
+            calculateRoute();
           }
         },
       );
@@ -101,6 +103,34 @@ const Index = () => {
   const calculatePrice = (distance) => {
     const totalPrice = BASE_FARE + distance * COST_PER_KM;
     setPrice(totalPrice);
+  };
+
+  const calculateRoute = () => {
+    if (pickupLocation && destination) {
+      const directionsService = new window.google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: pickupLocation,
+          destination: destination,
+          travelMode: "DRIVING",
+        },
+        (response, status) => {
+          if (status === "OK") {
+            if (routePolyline) {
+              routePolyline.setMap(null);
+            }
+            const newRoutePolyline = new window.google.maps.Polyline({
+              path: response.routes[0].overview_path,
+              strokeColor: "#FF0000",
+              strokeOpacity: 1.0,
+              strokeWeight: 2,
+            });
+            newRoutePolyline.setMap(map);
+            setRoutePolyline(newRoutePolyline);
+          }
+        },
+      );
+    }
   };
 
   return (
