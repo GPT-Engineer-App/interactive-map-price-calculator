@@ -68,12 +68,12 @@ const Index = () => {
         draggable: true,
       });
       marker.addListener("dragend", () => {
-        setDestinationMarker(marker);
+        setDestination(marker.getPosition());
+        calculateDistance();
       });
       setDestinationMarker(marker);
     }
   };
-  
 
   const calculateDistance = () => {
     if (pickupMarker && destinationMarker) {
@@ -107,11 +107,6 @@ const Index = () => {
     <Box>
       <Box id="map" h="400px" onClick={handleMapClick} />
       <VStack mt={4} spacing={4}>
-        <Button leftIcon={<FaMapMarkerAlt />} onClick={calculateDistance} disabled={!pickupLocation || !destination}>
-          Calculate Distance
-        </Button>
-        <Text>Distance: {distance} km</Text>
-        <Text>Price: ${price}</Text>
         <Text>
           {pickupLocation && (
             <>
